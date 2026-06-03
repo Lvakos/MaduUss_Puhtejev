@@ -13,18 +13,35 @@ namespace MaduUss_Puhtejev
             {
                 Console.Clear();
 
-                Console.WriteLine("╔══════════════════════╗");
-                Console.WriteLine("║      SNAKE  GAME     ║");
-                Console.WriteLine("╠══════════════════════╣");
-                Console.WriteLine("║  1 - Üks mängija     ║");
-                Console.WriteLine("║  2 - 1v1 (kaks maja) ║");
-                Console.WriteLine("║  0 - Välju           ║");
-                Console.WriteLine("╚══════════════════════╝");
-                Console.Write("\nVali režiim: ");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("╔══════════════════════════╗");
+                Console.WriteLine("║       SNAKE  GAME        ║");
+                Console.WriteLine("╠══════════════════════════╣");
+                Console.ResetColor();
+                Console.WriteLine("║  1 - Üks mängija         ║");
+                Console.WriteLine("║  2 - 1v1 (kaks mängijat) ║");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("║  3 - 🏆 Edetabel         ║");
+                Console.ResetColor();
+                Console.WriteLine("║  0 - Välju               ║");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("╚══════════════════════════╝");
+                Console.ResetColor();
+                Console.Write("\nVali: ");
 
-                if (!int.TryParse(Console.ReadLine(), out int režiim)) continue;
-                if (režiim == 0) break;
-                if (režiim != 1 && režiim != 2) continue;
+                if (!int.TryParse(Console.ReadLine(), out int valik)) continue;
+
+                if (valik == 0) break;
+
+                if (valik == 3)
+                {
+                    Edetabel.KuvaEdetabel();
+                    Console.WriteLine("\nVajuta Enter, et tagasi minna...");
+                    Console.ReadLine();
+                    continue;
+                }
+
+                if (valik != 1 && valik != 2) continue;
 
                 Console.Clear();
                 Console.WriteLine("Vali raskus (1 - Lihtne, 2 - Keskmine, 3 - Raske): ");
@@ -42,16 +59,10 @@ namespace MaduUss_Puhtejev
 
                 Console.Clear();
 
-                if (režiim == 1)
-                {
-                    var mäng = new UksikmängijaRežiim(seaded);
-                    mäng.Käivita();
-                }
+                if (valik == 1)
+                    new UksikmängijaRežiim(seaded).Käivita();
                 else
-                {
-                    var mäng = new KaksMängijatRežiim(seaded);
-                    mäng.Käivita();
-                }
+                    new KaksMängijatRežiim(seaded).Käivita();
 
                 Console.WriteLine("\nUuesti mängida? (J/N)");
                 string vastus = Console.ReadLine()?.Trim().ToUpper();

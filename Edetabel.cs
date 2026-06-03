@@ -1,56 +1,95 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
-namespace MaduUss_Puhtejev
+﻿namespace MaduUss_Puhtejev
 {
     public static class Edetabel
     {
-        private static string failiTee = "punktid.txt";
+        private static string failiTee = "skoorid.txt";
+
+        private static readonly string[] Medalid = { "🥇", "🥈", "🥉", "  ", "  " };
 
         public static void Salvesta(string nimi, int skoor)
         {
             try
             {
-                // VIGA FIX: Kaitseme erimärkide eest nimedes (semikoolon lõhub parsimise)
                 string ohutNimi = nimi.Replace(";", "").Replace("\n", "");
                 File.AppendAllLines(failiTee, new[] { $"{ohutNimi};{skoor}" });
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Punkti salvestamine ebaõnnestus: {e.Message}");
+                Console.WriteLine($"Skoori salvestamine ebaõnnestus: {e.Message}");
             }
         }
 
         public static void KuvaEdetabel()
         {
-            Console.WriteLine("\n--- TOP 5 EDETABEL ---");
+            Console.Clear();
+
+            string pealkiri = "  🏆  TOP 10 EDETABEL  🏆  ";
+            string piir = new string('═', 36);
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"╔{piir}╗");
+            Console.WriteLine($"║{pealkiri.PadLeft(28).PadRight(36)}║");
+            Console.WriteLine($"╠{piir}╣");
+            Console.ResetColor();
 
             if (!File.Exists(failiTee))
             {
-                Console.WriteLine("(edetabel on tühi)");
-                return;
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+                Console.WriteLine($"║{"(edetabel on tühi)".PadLeft(27).PadRight(36)}║");
+                Console.ResetColor();
+            }
+            else
+            {
+                try
+                {
+                    var skoorid = File.ReadAllLines(failiTee)
+                        .Select(rida => rida.Split(';'))
+                        .Where(osad => osad.Length == 2 && int.TryParse(osad[1], out _))
+                        .Select(osad => new { Nimi = osad[0], Punktid = int.Parse(osad[1]) })
+                        .OrderByDescending(x => x.Punktid)
+                        .Take(10)
+                        .ToList();
+
+                    if (skoorid.Count == 0)
+                    {
+                        Console.ForegroundColor = ConsoleColor.DarkGray;
+                        Console.WriteLine($"║{"(edetabel on tühi)".PadLeft(27).PadRight(36)}║");
+                        Console.ResetColor();
+                    }
+                    else
+                    {
+                        for (int i = 0; i < skoorid.Count; i++)
+                        {
+                            string medal = (i < 3) ? Medalid[i] : $"{i + 1,2}.";
+
+                            // Medalile järgneb nimi ja skoor paremjoondusega
+                            string nimi = skoorid[i].Nimi.Length > 18
+                                            ? skoorid[i].Nimi[..18]
+                                            : skoorid[i].Nimi;
+                            string punktid = skoorid[i].Punktid.ToString();
+                            // Tühikud nime ja skoori vahele
+                            int tühikud = 30 - nimi.Length - punktid.Length;
+                            string rida = $" {medal} {nimi}{new string('.', Math.Max(1, tühikud))}{punktid} ";
+
+                            // Kuldne top 3, muud valged
+                            Console.ForegroundColor = i == 0 ? ConsoleColor.Yellow
+                                                    : i == 1 ? ConsoleColor.Gray
+                                                    : i == 2 ? ConsoleColor.DarkYellow
+                                                    : ConsoleColor.White;
+                            Console.WriteLine($"║{rida.PadRight(36)}║");
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    Console.ResetColor();
+                    Console.WriteLine($"║ Viga: {e.Message,-29}║");
+                }
             }
 
-            try
-            {
-                var skoorid = File.ReadAllLines(failiTee)
-                    .Select(rida => rida.Split(';'))
-                    // VIGA FIX: Kontrollime, et real on täpselt 2 osa ja skoor on number
-                    .Where(osad => osad.Length == 2 && int.TryParse(osad[1], out _))
-                    .Select(osad => new { Nimi = osad[0], Punktid = int.Parse(osad[1]) })
-                    .OrderByDescending(x => x.Punktid)
-                    .Take(5);
-
-                int koht = 1;
-                foreach (var s in skoorid)
-                    Console.WriteLine($"{koht++}. {s.Nimi}: {s.Punktid}");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"Edetabeli lugemine ebaõnnestus: {e.Message}");
-            }
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"╚{piir}╝");
+            Console.ResetColor();
         }
     }
 }
