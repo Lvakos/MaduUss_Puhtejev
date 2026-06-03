@@ -1,37 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 
 namespace MaduUss_Puhtejev
 {
-    using System.Collections.Generic;
-    using System.Linq;
-
     public class Uss
     {
         private List<Punkt> keha = new List<Punkt>();
+        private bool kasvaJärgmiseSammuga = false;
+
+        private const string PeaSimbol = "■";
+        private const string KehaSimbol = "□";
+
         public Suund PraeguneSuund { get; set; }
 
         public Uss(int algX, int algY, int pikkus)
         {
-            PraeguneSuund = Suund.Paremale; // Alguses liigub paremale
-
-            // Loome ussi algse keha
+            PraeguneSuund = Suund.Paremale;
             for (int i = 0; i < pikkus; i++)
             {
-                Punkt p = new Punkt(algX - i, algY, '*');
+                string sümbol = (i == 0) ? PeaSimbol : KehaSimbol;
+                Punkt p = new Punkt(algX - i, algY, sümbol);
                 keha.Add(p);
-                p.Joonista();
             }
+            JoonistaSee();
         }
 
         public void Liigu()
         {
-            // 1. Leiame praeguse pea asukoha
-            Punkt pea = keha.First();
-            Punkt uusPea = new Punkt(pea.X, pea.Y, '*');
+            // Vana pea muutub kehaks
+            if (keha.Count > 0)
+                keha[0].Sümbol = KehaSimbol;
 
-            // 2. Arvutame uue pea asukoha vastavalt suunale
+            Punkt pea = keha.First();
+            Punkt uusPea = new Punkt(pea.X, pea.Y, PeaSimbol);
+
             switch (PraeguneSuund)
             {
                 case Suund.Paremale: uusPea.X++; break;
@@ -40,14 +43,24 @@ namespace MaduUss_Puhtejev
                 case Suund.Üles: uusPea.Y--; break;
             }
 
-            // 3. Lisame uue pea listi algusesse ja joonistame
             keha.Insert(0, uusPea);
-            uusPea.Joonista();
 
-            // 4. Kustutame sabaotsa (viimase elemendi), et simuleerida liikumist
-            Punkt saba = keha.Last();
-            saba.Kustuta();
-            keha.Remove(saba);
+            Console.ForegroundColor = ConsoleColor.Green;
+            uusPea.Joonista();
+            // Uuenda eelmine pea (nüüd keha) väljanägemist
+            keha[1].Joonista();
+            Console.ResetColor();
+
+            if (kasvaJärgmiseSammuga)
+            {
+                kasvaJärgmiseSammuga = false;
+            }
+            else
+            {
+                Punkt saba = keha.Last();
+                saba.Kustuta();
+                keha.RemoveAt(keha.Count - 1);
+            }
         }
 
         public Punkt HangiPea()
@@ -55,13 +68,28 @@ namespace MaduUss_Puhtejev
             return keha.First();
         }
 
+        public List<Punkt> HangiKeha()
+        {
+            return keha;
+        }
+
+        public bool PõrkasSiseendaga()
+        {
+            Punkt pea = keha.First();
+            return keha.Skip(1).Any(p => p.X == pea.X && p.Y == pea.Y);
+        }
+
         public void Kasva()
         {
-            // Kasvamine on lihtne - lisame saba lõppu lihtsalt uue nähtamatu punkti, 
-            // mis järgmise liikumise ajal asendab päris saba.
-            // Lihtsuse mõttes võime lihtsalt järgmisel liikumisel saba mitte kustutada!
-            // Siin lisame lihtsalt ajutise koopia viimasest elemendist.
-            keha.Add(new Punkt(keha.Last().X, keha.Last().Y, '*'));
+            kasvaJärgmiseSammuga = true;
+        }
+
+        private void JoonistaSee()
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            foreach (var p in keha)
+                p.Joonista();
+            Console.ResetColor();
         }
     }
 }
