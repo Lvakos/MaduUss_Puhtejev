@@ -13,14 +13,19 @@ namespace MaduUss_Puhtejev
         private const string KehaSimbol = "□";
 
         public Suund PraeguneSuund { get; set; }
+        public ConsoleColor Värv { get; private set; }
+        public bool OnElus { get; private set; } = true;
 
-        public Uss(int algX, int algY, int pikkus)
+        public Uss(int algX, int algY, int pikkus, Suund algSuund, ConsoleColor värv)
         {
-            PraeguneSuund = Suund.Paremale;
+            PraeguneSuund = algSuund;
+            Värv = värv;
+
+            int samm = (algSuund == Suund.Paremale) ? -1 : 1;
             for (int i = 0; i < pikkus; i++)
             {
                 string sümbol = (i == 0) ? PeaSimbol : KehaSimbol;
-                Punkt p = new Punkt(algX - i, algY, sümbol);
+                Punkt p = new Punkt(algX + samm * i, algY, sümbol);
                 keha.Add(p);
             }
             JoonistaSee();
@@ -28,7 +33,8 @@ namespace MaduUss_Puhtejev
 
         public void Liigu()
         {
-            // Vana pea muutub kehaks
+            if (!OnElus) return;
+
             if (keha.Count > 0)
                 keha[0].Sümbol = KehaSimbol;
 
@@ -45,9 +51,8 @@ namespace MaduUss_Puhtejev
 
             keha.Insert(0, uusPea);
 
-            Console.ForegroundColor = ConsoleColor.Green;
+            Console.ForegroundColor = Värv;
             uusPea.Joonista();
-            // Uuenda eelmine pea (nüüd keha) väljanägemist
             keha[1].Joonista();
             Console.ResetColor();
 
@@ -63,15 +68,9 @@ namespace MaduUss_Puhtejev
             }
         }
 
-        public Punkt HangiPea()
-        {
-            return keha.First();
-        }
+        public Punkt HangiPea() => keha.First();
 
-        public List<Punkt> HangiKeha()
-        {
-            return keha;
-        }
+        public List<Punkt> HangiKeha() => keha;
 
         public bool PõrkasSiseendaga()
         {
@@ -79,14 +78,20 @@ namespace MaduUss_Puhtejev
             return keha.Skip(1).Any(p => p.X == pea.X && p.Y == pea.Y);
         }
 
-        public void Kasva()
+        // Kontroll teise ussi kehaga kokkupõrkeks
+        public bool PõrkasTeiseUssiga(Uss teine)
         {
-            kasvaJärgmiseSammuga = true;
+            Punkt pea = keha.First();
+            return teine.keha.Any(p => p.X == pea.X && p.Y == pea.Y);
         }
+
+        public void Kasva() => kasvaJärgmiseSammuga = true;
+
+        public void Tapa() => OnElus = false;
 
         private void JoonistaSee()
         {
-            Console.ForegroundColor = ConsoleColor.Green;
+            Console.ForegroundColor = Värv;
             foreach (var p in keha)
                 p.Joonista();
             Console.ResetColor();
