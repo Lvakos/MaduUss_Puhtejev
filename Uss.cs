@@ -78,7 +78,7 @@ namespace MaduUss_Puhtejev
             return keha.Skip(1).Any(p => p.X == pea.X && p.Y == pea.Y);
         }
 
-        // Kontroll teise ussi kehaga kokkupõrkeks
+ 
         public bool PõrkasTeiseUssiga(Uss teine)
         {
             Punkt pea = keha.First();

@@ -11,7 +11,6 @@ namespace MaduUss_Puhtejev
         private int ekraaniKõrgus;
         public Punkt Asukoht { get; private set; }
 
-        // Emoji on 2 tühiku lai — liigume ainult paarisveeergudel
         private const string ToiduSimbol = "🍎";
 
         public Toit(int laius, int kõrgus, List<Punkt> ussiKeha)
@@ -28,8 +27,7 @@ namespace MaduUss_Puhtejev
 
             do
             {
-                // Emoji võtab 2 veergu — kasutame ainult paarisarve X koordinaadile
-                // ja jätame seina ääred vahele (2..laius-3)
+
                 x = rnd.Next(1, (ekraaniLaius - 3) / 2) * 2;
                 y = rnd.Next(2, ekraaniKõrgus - 2);
                 katsed++;

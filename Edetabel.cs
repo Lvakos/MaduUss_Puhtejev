@@ -62,16 +62,13 @@
                         {
                             string medal = (i < 3) ? Medalid[i] : $"{i + 1,2}.";
 
-                            // Medalile järgneb nimi ja skoor paremjoondusega
                             string nimi = skoorid[i].Nimi.Length > 18
                                             ? skoorid[i].Nimi[..18]
                                             : skoorid[i].Nimi;
                             string punktid = skoorid[i].Punktid.ToString();
-                            // Tühikud nime ja skoori vahele
                             int tühikud = 30 - nimi.Length - punktid.Length;
                             string rida = $" {medal} {nimi}{new string('.', Math.Max(1, tühikud))}{punktid} ";
 
-                            // Kuldne top 3, muud valged
                             Console.ForegroundColor = i == 0 ? ConsoleColor.Yellow
                                                     : i == 1 ? ConsoleColor.Gray
                                                     : i == 2 ? ConsoleColor.DarkYellow

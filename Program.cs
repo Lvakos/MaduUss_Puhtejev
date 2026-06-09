@@ -20,8 +20,11 @@ namespace MaduUss_Puhtejev
                 Console.ResetColor();
                 Console.WriteLine("║  1 - Üks mängija         ║");
                 Console.WriteLine("║  2 - 1v1 (kaks mängijat) ║");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("║  3 - 💣 Miiniväli        ║");
+                Console.ResetColor();
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("║  3 - 🏆 Edetabel         ║");
+                Console.WriteLine("║  4 - 🏆 Edetabel         ║");
                 Console.ResetColor();
                 Console.WriteLine("║  0 - Välju               ║");
                 Console.ForegroundColor = ConsoleColor.Yellow;
@@ -33,7 +36,7 @@ namespace MaduUss_Puhtejev
 
                 if (valik == 0) break;
 
-                if (valik == 3)
+                if (valik == 4)
                 {
                     Edetabel.KuvaEdetabel();
                     Console.WriteLine("\nVajuta Enter, et tagasi minna...");
@@ -41,7 +44,7 @@ namespace MaduUss_Puhtejev
                     continue;
                 }
 
-                if (valik != 1 && valik != 2) continue;
+                if (valik != 1 && valik != 2 && valik != 3) continue;
 
                 Console.Clear();
                 Console.WriteLine("Vali raskus (1 - Lihtne, 2 - Keskmine, 3 - Raske): ");
@@ -61,8 +64,10 @@ namespace MaduUss_Puhtejev
 
                 if (valik == 1)
                     new UksikmängijaRežiim(seaded).Käivita();
-                else
+                else if (valik == 2)
                     new KaksMängijatRežiim(seaded).Käivita();
+                else
+                    new MiiniväljRežiim(seaded).Käivita();
 
                 Console.WriteLine("\nUuesti mängida? (J/N)");
                 string vastus = Console.ReadLine()?.Trim().ToUpper();
