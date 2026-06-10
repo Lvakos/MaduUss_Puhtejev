@@ -9,7 +9,6 @@ namespace MaduUss_Puhtejev
         public int Kõrgus { get; private set; }
         private List<Punkt> takistused = new List<Punkt>();
 
-        // Punane ruut: Unicode █ punase värviga
         private const string SeinaSimbol = "█";
 
         public Kaart(int laius, int kõrgus)

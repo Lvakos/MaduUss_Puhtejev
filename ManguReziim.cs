@@ -40,9 +40,15 @@ namespace MaduUss_Puhtejev
                 }
 
                 uss.Liigu();
+
+                Punkt? kustutatud = uss.ViimaneKustutatud;
+                if (kustutatud != null &&
+                    Math.Abs(toit.Asukoht.Y - kustutatud.Y) <= 0 &&
+                    Math.Abs(toit.Asukoht.X - kustutatud.X) <= 2)
+                    toit.Joonista();
+
                 // Joonistame toidu uuesti igal sammul — väldib emoji kustumist
                 // kui uss liigub selle kõrvalt mööda ja kustutab poole sümbolist
-                toit.Joonista();
                 Punkt pea = uss.HangiPea();
 
                 if (pea.X <= 0 || pea.X >= seaded.Laius - 1 || pea.Y <= 0 || pea.Y >= seaded.Kõrgus - 1
@@ -141,8 +147,14 @@ namespace MaduUss_Puhtejev
 
                 uss1.Liigu();
                 uss2.Liigu();
-                // Sama parandus — joonistame toidu pärast mõlema ussi liikumist
-                toit.Joonista();
+
+                // Точечная перерисовка яблока — только если хвост был рядом
+                Punkt? k1 = uss1.ViimaneKustutatud;
+                Punkt? k2 = uss2.ViimaneKustutatud;
+                bool lähedal(Punkt? k) => k != null &&
+                    Math.Abs(toit.Asukoht.Y - k.Y) <= 0 &&
+                    Math.Abs(toit.Asukoht.X - k.X) <= 2;
+                if (lähedal(k1) || lähedal(k2)) toit.Joonista();
 
                 Punkt pea1 = uss1.HangiPea();
                 Punkt pea2 = uss2.HangiPea();
@@ -229,15 +241,18 @@ namespace MaduUss_Puhtejev
         }
     }
 
+    // Miinivälja režiim — võiduskoor ja pommide intervall sõltuvad raskusastmest
     public class MiiniväljRežiim
     {
         private Manguseaded seaded;
-        private const int VõiduSkoor = 150;
-        private const int PommiIntervall = 3000;
+        private int võiduSkoor;
+        private int pommiIntervall;
 
         public MiiniväljRežiim(Manguseaded seaded)
         {
             this.seaded = seaded;
+            võiduSkoor = seaded.VõiduSkoor;
+            pommiIntervall = seaded.PommiIntervall;
         }
 
         public void Käivita()
@@ -245,6 +260,7 @@ namespace MaduUss_Puhtejev
             Kaart kaart = new Kaart(seaded.Laius, seaded.Kõrgus);
             Uss uss = new Uss(seaded.Laius / 2, seaded.Kõrgus / 2, 3, Suund.Paremale, ConsoleColor.Green);
 
+            // Toidule ja pommidele antakse keelatud tsoonide nimekiri
             var keelatud = new List<Punkt>(uss.HangiKeha());
             Toit toit = new Toit(seaded.Laius, seaded.Kõrgus, keelatud);
 
@@ -260,7 +276,7 @@ namespace MaduUss_Puhtejev
             bool võitis = false;
 
             // Aeg viimase pommi ilmumisest
-            DateTime viimanePoмm = DateTime.Now;
+            DateTime viimanePomm = DateTime.Now;
 
             while (!mängLäbi)
             {
@@ -275,9 +291,9 @@ namespace MaduUss_Puhtejev
                     else if (klahv.Key == ConsoleKey.Escape) { mängLäbi = true; continue; }
                 }
 
-                if ((DateTime.Now - viimanePoмm).TotalMilliseconds >= PommiIntervall)
+                // Iga 3 sekundi järel lisame uue pommi
+                if ((DateTime.Now - viimanePomm).TotalMilliseconds >= pommiIntervall)
                 {
-
                     var keelatudNüüd = new List<Punkt>(uss.HangiKeha());
                     keelatudNüüd.Add(toit.Asukoht);
                     foreach (var p in pommid) keelatudNüüd.Add(p.Asukoht);
@@ -285,14 +301,26 @@ namespace MaduUss_Puhtejev
                     var uusPomm = new Pomm(seaded.Laius, seaded.Kõrgus, keelatudNüüd);
                     pommid.Add(uusPomm);
                     uusPomm.Joonista();
-                    viimanePoмm = DateTime.Now;
+                    viimanePomm = DateTime.Now;
                 }
 
                 uss.Liigu();
-                toit.Joonista();
 
 
-                foreach (var p in pommid) p.Joonista();
+                Punkt? kustutatud = uss.ViimaneKustutatud;
+                if (kustutatud != null)
+                {
+                    if (Math.Abs(toit.Asukoht.Y - kustutatud.Y) <= 0 &&
+                        Math.Abs(toit.Asukoht.X - kustutatud.X) <= 2)
+                        toit.Joonista();
+
+                    foreach (var p in pommid)
+                    {
+                        if (Math.Abs(p.Asukoht.Y - kustutatud.Y) <= 0 &&
+                            Math.Abs(p.Asukoht.X - kustutatud.X) <= 2)
+                            p.Joonista();
+                    }
+                }
 
                 Punkt pea = uss.HangiPea();
 
@@ -327,7 +355,7 @@ namespace MaduUss_Puhtejev
                     KuvaProgressiriba(skoor);
 
                     // Võit!
-                    if (skoor >= VõiduSkoor)
+                    if (skoor >= võiduSkoor)
                     {
                         mängLäbi = true;
                         võitis = true;
@@ -338,14 +366,14 @@ namespace MaduUss_Puhtejev
                 Thread.Sleep(seaded.KiirusMS);
             }
 
-
+            // Lõpuekraan
             Console.Clear();
             Console.SetCursorPosition(0, 0);
 
             if (võitis)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine($"🎉 Sa võitsid! Skoor: {skoor}/{VõiduSkoor}");
+                Console.WriteLine($"🎉 Sa võitsid! Skoor: {skoor}/{võiduSkoor}");
                 Console.ResetColor();
             }
             else
@@ -366,19 +394,19 @@ namespace MaduUss_Puhtejev
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.SetCursorPosition(2, 0);
-            Console.Write($" 🍎{skoor}/{VõiduSkoor} ");
+            Console.Write($" 🍎{skoor}/{võiduSkoor} ");
             Console.ResetColor();
         }
 
         private void KuvaProgressiriba(int skoor)
         {
             int ribaLaius = 15;
-            int täidetud = (int)((double)skoor / VõiduSkoor * ribaLaius);
+            int täidetud = (int)((double)skoor / võiduSkoor * ribaLaius);
             täidetud = Math.Min(täidetud, ribaLaius);
 
             string riba = "[" + new string('█', täidetud) + new string('░', ribaLaius - täidetud) + "]";
 
-            Console.ForegroundColor = skoor >= VõiduSkoor * 0.75 ? ConsoleColor.Green : ConsoleColor.DarkYellow;
+            Console.ForegroundColor = skoor >= võiduSkoor * 0.75 ? ConsoleColor.Green : ConsoleColor.DarkYellow;
             Console.SetCursorPosition(seaded.Laius - ribaLaius - 5, 0);
             Console.Write(riba);
             Console.ResetColor();
